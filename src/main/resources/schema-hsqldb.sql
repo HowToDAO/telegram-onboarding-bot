@@ -1,0 +1,7 @@
+CREATE TABLE users(
+user_id BIGINT IDENTITY PRIMARY KEY,
+user_Name VARCHAR(255),
+first_Name VARCHAR(255),
+last_Name VARCHAR(255),
+create_Date TIMESTAMP
+);
