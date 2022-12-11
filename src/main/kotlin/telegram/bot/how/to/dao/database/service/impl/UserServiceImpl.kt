@@ -1,25 +1,29 @@
 package telegram.bot.how.to.dao.database.service.impl
 
-import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.RowMapper
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import telegram.bot.how.to.dao.database.repositories.UserRepository
 import telegram.bot.how.to.dao.database.data.entity.User
 import telegram.bot.how.to.dao.database.service.UserService
-import java.sql.ResultSet
 
 @Service
-open class UserServiceImpl(private val jtm: JdbcTemplate) : UserService {
+open class UserServiceImpl(
+    @Autowired open val userRepository: UserRepository
+) : UserService {
 
-    private val rowMapper: RowMapper<User> = RowMapper<User> { resultSet: ResultSet, _: Int ->
-        User(
-            userId = resultSet.getLong("user_id"),
-            userName = resultSet.getString("user_Name"),
-            firstName = resultSet.getString("first_Name"),
-            lastName = resultSet.getString("last_Name"),
-            createDate = resultSet.getTimestamp("create_Date")
-        )
-    }
+    @Transactional
+    override fun saveUser(user: User): User = userRepository.save(user)
 
-    override fun getUserById(userId: Long): User? =
-        jtm.query("SELECT * FROM users WHERE USER_ID = $userId", rowMapper).firstOrNull()
+    @Transactional
+    override fun getUserById(userId: Int): User? = userRepository.findUserById(userId)
+
+    @Transactional
+    override fun getUserByUserChatId(userChatId: String): User? = userRepository.findUserByUserChatId(userChatId)
+
+    @Transactional
+    override fun getAllUsers(): Iterable<User>? = userRepository.findAll()
+
+    @Transactional
+    override fun deleteById(userId: Int): User? = userRepository.deleteById(User(userId))
 }
