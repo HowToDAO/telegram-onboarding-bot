@@ -1,6 +1,8 @@
 spring:
-  main:
-    banner-mode: off
-  sql:
-    init:
-      platform: hsqldb
+  datasource:
+    url: jdbc:h2:file:./database/demodb
+    username: --
+    password: --
+    driverClassName: org.h2.Driver
+  jpa:
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect

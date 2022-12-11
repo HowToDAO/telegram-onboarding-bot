@@ -31,8 +31,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    runtimeOnly("org.hsqldb:hsqldb")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.0.0")
+    implementation("com.h2database:h2:2.1.214")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

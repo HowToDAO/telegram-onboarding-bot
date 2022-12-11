@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.objects.Update
+import telegram.bot.how.to.dao.database.data.entity.User
 import telegram.bot.how.to.dao.database.service.UserService
+import java.sql.Timestamp
 
 class TelegramBot(
     private val botUsername: String,
@@ -16,7 +18,7 @@ class TelegramBot(
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     override fun onUpdateReceived(update: Update) {
-        log.info(
+        log.debug(
             "\nMessage: " + update.message?.text +
                     "\nFromMsg: " + update.message?.from +
                     "\nChat: " + update.message?.chat +
@@ -26,8 +28,17 @@ class TelegramBot(
                     "\nSticker: " + update.message?.sticker
         )
 
+        val user = User(
+            id = null,
+            userChatId = update.message.chatId.toString(),
+            firstName = update.message?.from?.firstName,
+            lastName = update.message?.from?.lastName,
+            userName = update.message?.from?.userName,
+            createDate = Timestamp(System.currentTimeMillis())
+        )
+
         update.message?.text
-            ?.let { onUpdate(it) }
+            ?.let { onUpdate(it, user) }
             ?.run { sendMessage(this, update.message.chatId) }
     }
 
