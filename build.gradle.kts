@@ -38,6 +38,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.typesafe:config:1.4.2")
     implementation("org.telegram:telegrambots-spring-boot-starter:6.1.0")
+    implementation("com.google.code.gson:gson:2.10")
 }
 
 tasks.test {

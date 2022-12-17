@@ -1,0 +1,316 @@
+{
+  "text": "Выберите категорию вопроса",
+  "code": "main-menu",
+  "list": [
+    {
+      "text": "DeFi",
+      "button": "DeFi",
+      "code": "defi",
+      "list": [
+        {
+          "text": "Статья про протоколы",
+          "button": "Протоколы",
+          "code": "protocols"
+        },
+        {
+          "text": "Выберите статью про стейблкоины",
+          "button": "Стейблкоины",
+          "code": "stable-coins",
+          "list": [
+            {
+              "text": "Статья про USDT",
+              "button": "USDT",
+              "code": "usdt"
+            },
+            {
+              "text": "Статья про USDC",
+              "button": "USDC",
+              "code": "usdc"
+            },
+            {
+              "text": "Статья про BUSD",
+              "button": "BUSD",
+              "code": "busd"
+            },
+            {
+              "text": "Статья про DAI",
+              "button": "DAI",
+              "code": "dai"
+            }
+          ]
+        },
+        {
+          "text": "Выберите тип фандрайзинга",
+          "button": "Фандрайзинг",
+          "code": "fundraising",
+          "list": [
+            {
+              "text": "Статья про IDO",
+              "button": "IDO",
+              "code": "ido"
+            },
+            {
+              "text": "Статья про ICO",
+              "button": "ICO",
+              "code": "ico"
+            },
+            {
+              "text": "Статья про ILAO",
+              "button": "ILAO",
+              "code": "ilao"
+            },
+            {
+              "text": "Статья про TGE",
+              "button": "TGE",
+              "code": "tge"
+            }
+          ]
+        },
+        {
+          "text": "Статья про блокчейн-платформы",
+          "button": "Блокчейн-платформы",
+          "code": "blockchain-platforms"
+        }
+      ]
+    },
+    {
+      "text": "NFT",
+      "button": "NFT",
+      "code": "nft",
+      "list": [
+        {
+          "text": "Статья про платформы",
+          "button": "Платформы",
+          "code": "platforms"
+        },
+        {
+          "text": "Статья про проекты",
+          "button": "Проекты",
+          "code": "projects"
+        },
+        {
+          "text": "Статья про области использования",
+          "button": "Области использования",
+          "code": "usages"
+        },
+        {
+          "text": "Статья про особенности",
+          "button": "Особенности",
+          "code": "specials"
+        },
+        {
+          "text": "Статья про стандарты",
+          "button": "Стандарты",
+          "code": "nft-standards"
+        },
+        {
+          "text": "Статья про блокчейн-системы",
+          "button": "Блокчейн-системы",
+          "code": "blockchain-systems"
+        }
+      ]
+    },
+    {
+      "text": "Метавселенные",
+      "button": "Метавселенные",
+      "code": "metaverse",
+      "list": [
+        {
+          "text": "Статья про Технологии",
+          "button": "Технологии",
+          "code": "technologies"
+        },
+        {
+          "text": "Статья про Стандарты",
+          "button": "Стандарты",
+          "code": "metaverse-standards"
+        },
+        {
+          "text": "Статья про Таймлайн",
+          "button": "Таймлайн",
+          "code": "metaverse-timeline"
+        },
+        {
+          "text": "Статья про Кейсы использоания",
+          "button": "Кейсы использоания",
+          "code": "metaverse-cases"
+        },
+        {
+          "text": "Статья про Компании",
+          "button": "Компании",
+          "code": "metaverse-companies"
+        },
+        {
+          "text": "Статья про Фильмы",
+          "button": "Фильмы",
+          "code": "metaverse-films"
+        },
+        {
+          "text": "Статья про Крипту",
+          "button": "Крипту",
+          "code": "metaverse-crypto"
+        }
+      ]
+    },
+    {
+      "text": "Блокчейн",
+      "button": "Блокчейн",
+      "code": "blockchain",
+      "list": [
+        {
+          "text": "Статья про Proof of Work",
+          "button": "Proof of Work",
+          "code": "pow"
+        },
+        {
+          "text": "Статья про Proof of Stake",
+          "button": "Proof of Stake",
+          "code": "pos"
+        },
+        {
+          "text": "Статья про Смешанный консенсус",
+          "button": "Смешанный консенсус",
+          "code": "mix-consensus"
+        },
+        {
+          "text": "Статья про Другие механизмы",
+          "button": "Другие механизмы",
+          "code": "blockchain-others"
+        }
+      ]
+    },
+    {
+      "text": "Цифровые активы",
+      "button": "Цифровые активы",
+      "code": "cfa",
+      "list": [
+        {
+          "text": "Статья про Технология",
+          "button": "Технология",
+          "code": "cfa-tech"
+        },
+        {
+          "text": "Статья про Право",
+          "button": "Право",
+          "code": "cfa-order"
+        },
+        {
+          "text": "Статья про Финансы",
+          "button": "Финансы",
+          "code": "cfa-finance"
+        },
+        {
+          "text": "Статья про Судебные кейсы",
+          "button": "Судебные кейсы",
+          "code": "cfa-layers-cases"
+        },
+        {
+          "text": "Статья про Метаданные",
+          "button": "Метаданные",
+          "code": "cfa-metadata"
+        },
+        {
+          "text": "Производные",
+          "button": "Производные",
+          "code": "cfa-derivative",
+          "list": [
+            {
+              "text": "Статья про Интеллектуальная собственность",
+              "button": "Интеллектуальная собственность",
+              "code": "cfa-intellectual-property"
+            },
+            {
+              "text": "Статья про Обернутый токен",
+              "button": "Обернутый токен",
+              "code": "cfa-token"
+            }
+          ]
+        },
+        {
+          "text": "Статья про Внутренние",
+          "button": "Внутренние",
+          "code": "cfa-inside"
+        },
+        {
+          "text": "Статья про Гибридные",
+          "button": "Гибридные",
+          "code": "cfa-hybrid"
+        }
+      ]
+    },
+    {
+      "text": "Криптоэкосистема",
+      "button": "Криптоэкосистема",
+      "code": "crypto-system",
+      "list": [
+        {
+          "text": "Статья про Сервисы",
+          "button": "Сервисы",
+          "code": "crypto-services"
+        },
+        {
+          "text": "Статья про Типы",
+          "button": "Типы",
+          "code": "crypto-types"
+        },
+        {
+          "text": "Статья про Метрики",
+          "button": "Метрики",
+          "code": "crypto-metrics"
+        },
+        {
+          "text": "Статья про Монетизация",
+          "button": "Монетизация",
+          "code": "crypto-coins"
+        }
+      ]
+    },
+    {
+      "text": "Статья про DAO",
+      "button": "DAO",
+      "code": "dao"
+    },
+    {
+      "text": "Профессии",
+      "button": "Профессии",
+      "code": "professions",
+      "list": [
+        {
+          "text": "Статья про Smart contracts dev",
+          "button": "Smart contracts dev",
+          "code": "professions-smart-contracts"
+        },
+        {
+          "text": "Статья про Full stack dev - web3",
+          "button": "Full stack dev - web3",
+          "code": "professions-full-stack-dev"
+        },
+        {
+          "text": "Статья про Front-end dev - web3",
+          "button": "Front-end dev - web3",
+          "code": "professions-frond-end-dev"
+        },
+        {
+          "text": "Статья про Web3 SMM",
+          "button": "Web3 SMM",
+          "code": "professions-web3-smm"
+        },
+        {
+          "text": "Статья про Community manager",
+          "button": "Community manager",
+          "code": "professions-community-manager"
+        },
+        {
+          "text": "Статья про Web3 product manager",
+          "button": "Web3 product manager",
+          "code": "professions-product-manager"
+        },
+        {
+          "text": "Статья про Token economist",
+          "button": "Token economist",
+          "code": "professions-token-economist"
+        }
+      ]
+    }
+  ]
+}

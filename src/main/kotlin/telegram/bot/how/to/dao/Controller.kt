@@ -14,6 +14,7 @@ open class Controller(userService: UserService) {
         val bot = TelegramBot(
             botUsername = "", // todo:: add your telegram bot name here
             botToken = "", // todo:: add your telegram bot token here
+            fileName = "frequently_asked_questions.json",
             userService = userService
         )
         TelegramBotsApi(DefaultBotSession::class.java).registerBot(bot)
