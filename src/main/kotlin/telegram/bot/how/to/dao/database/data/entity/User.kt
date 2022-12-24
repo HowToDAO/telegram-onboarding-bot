@@ -13,7 +13,7 @@ import java.sql.Timestamp
 data class User(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     var id: Int? = null,
 
     @Column(name = "USER_CHAT_ID") var userChatId: String? = null,
