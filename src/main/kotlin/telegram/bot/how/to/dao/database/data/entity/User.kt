@@ -2,21 +2,20 @@ package telegram.bot.how.to.dao.database.data.entity
 
 import jakarta.persistence.*
 import org.hibernate.Hibernate
-import org.hibernate.annotations.Cache
-import org.hibernate.annotations.CacheConcurrencyStrategy
 import java.sql.Timestamp
 
 
 @Entity
-@Table(name = "USERS")
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+@Table(name = "USERS", uniqueConstraints = [UniqueConstraint(columnNames = ["USER_CHAT_ID", "MESSENGER"])])
 data class User(
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    var id: Int? = null,
+    @Column(name = "USER_ID") var id: Int? = null,
 
     @Column(name = "USER_CHAT_ID") var userChatId: String? = null,
+
+    @Enumerated(EnumType.STRING) var messenger: Messenger? = null,
 
     @Column(name = "USER_NAME") var userName: String? = null,
 
@@ -44,6 +43,6 @@ data class User(
 
     @Override
     override fun toString(): String {
-        return this::class.simpleName + "(id = $id , userChatId = $userChatId , userName = $userName , firstName = $firstName , lastName = $lastName , createDate = $createDate )"
+        return this::class.simpleName + "(id = $id, userChatId = $userChatId, userName = $userName, firstName = $firstName, lastName = $lastName, createDate = $createDate )"
     }
 }

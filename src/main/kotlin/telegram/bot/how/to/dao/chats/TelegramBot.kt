@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import telegram.bot.how.to.dao.database.data.entity.Messenger
 import telegram.bot.how.to.dao.database.dto.FrequentlyAskedQuestionsDTO
 import telegram.bot.how.to.dao.database.service.UserService
 import telegram.bot.how.to.dao.database.data.entity.User
@@ -55,22 +56,39 @@ class TelegramBot(
                 answer = answer ?: answers
             )
 
-            val user = User(
-                id = null,
-                userChatId = messageId.toString(),
-                firstName = update.callbackQuery?.from?.firstName,
-                lastName = update.callbackQuery?.from?.lastName,
-                userName = update.callbackQuery?.from?.userName,
-                createDate = Timestamp(System.currentTimeMillis())
-            )
+            userService.getUserByUserChatIdAndMessenger(
+                update.callbackQuery?.from?.id.toString(),
+                Messenger.TELEGRAM
+            )?.let {
+                userAction = UserAction(
+                    id = null,
+                    actionName = "callBack:$callData",
+                    actionDateTime = Timestamp(System.currentTimeMillis()),
+                    user = it
+                )
+                userService.saveUserAction(userAction)
+            } ?: run {
 
-            userAction = UserAction(
-                id = null,
-                actionName = "callBack:$callData",
-                actionDateTime = Timestamp(System.currentTimeMillis()),
-                user = user
-            )
-            userService.saveUserAction(userAction)
+                val user = userService.saveUser(
+                    User(
+                        id = null,
+                        messenger = Messenger.TELEGRAM,
+                        userChatId = update.callbackQuery?.from?.id.toString(),
+                        firstName = update.callbackQuery?.from?.firstName,
+                        lastName = update.callbackQuery?.from?.lastName,
+                        userName = update.callbackQuery?.from?.userName,
+                        createDate = Timestamp(System.currentTimeMillis())
+                    )
+                )
+                userService.saveUserAction(
+                    UserAction(
+                        id = null,
+                        actionName = "callBack:$callData",
+                        actionDateTime = Timestamp(System.currentTimeMillis()),
+                        user = user
+                    )
+                )
+            }
         } else {
             sendMessageWithButtons(
                 messageText = answers.text ?: " -- text not found -- ",
@@ -78,22 +96,38 @@ class TelegramBot(
                 answer = answers
             )
 
-            val user = User(
-                id = null,
-                userChatId = update.message.chatId.toString(),
-                firstName = update.message.from?.firstName,
-                lastName = update.message.from?.lastName,
-                userName = update.message.from?.userName,
-                createDate = Timestamp(System.currentTimeMillis())
-            )
-
-            userAction = UserAction(
-                id = null,
-                actionName = "msg:${update.message.text}",
-                actionDateTime = Timestamp(System.currentTimeMillis()),
-                user = user
-            )
-            userService.saveUserAction(userAction)
+            userService.getUserByUserChatIdAndMessenger(
+                update.message.from?.id.toString(),
+                Messenger.TELEGRAM
+            )?.let {
+                userAction = UserAction(
+                    id = null,
+                    actionName = "msg:${update.message.text}",
+                    actionDateTime = Timestamp(System.currentTimeMillis()),
+                    user = it
+                )
+                userService.saveUserAction(userAction)
+            } ?: run {
+                val user = userService.saveUser(
+                    User(
+                        id = null,
+                        userChatId = update.message.from?.id.toString(),
+                        messenger = Messenger.TELEGRAM,
+                        firstName = update.message.from?.firstName,
+                        lastName = update.message.from?.lastName,
+                        userName = update.message.from?.userName,
+                        createDate = Timestamp(System.currentTimeMillis())
+                    )
+                )
+                userService.saveUserAction(
+                    UserAction(
+                        id = null,
+                        actionName = "msg:${update.message.text}",
+                        actionDateTime = Timestamp(System.currentTimeMillis()),
+                        user = user
+                    )
+                )
+            }
         }
     }
 

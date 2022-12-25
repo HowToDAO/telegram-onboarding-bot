@@ -3,6 +3,7 @@ package telegram.bot.how.to.dao.database.service.impl
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import telegram.bot.how.to.dao.database.data.entity.Messenger
 import telegram.bot.how.to.dao.database.repositories.UserRepository
 import telegram.bot.how.to.dao.database.data.entity.User
 import telegram.bot.how.to.dao.database.data.entity.UserAction
@@ -26,6 +27,10 @@ open class UserServiceImpl(
 
     @Transactional
     override fun getUserByUserChatId(userChatId: String): User? = userRepository.findUserByUserChatId(userChatId)
+
+    @Transactional
+    override fun getUserByUserChatIdAndMessenger(userChatId: String, messenger: Messenger): User? =
+        userRepository.findUserByUserChatIdAndMessenger(userChatId, messenger)
 
     @Transactional
     override fun getAllUsers(): Iterable<User>? = userRepository.findAll()
