@@ -5,6 +5,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
@@ -24,9 +25,11 @@ class TelegramBot(
     fileName: String,
     override val userService: UserService
 ) : Communicator, TelegramLongPollingBot() {
+    private val fileAnswers = File(fileName)
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private val answers = read(fileName)
+    private var answers = read(fileAnswers)
+    private var updateFileTime = 0L
 
     override fun onUpdateReceived(update: Update) {
         log.debug(
@@ -41,7 +44,7 @@ class TelegramBot(
 
         val userAction: UserAction?
 
-        if (update.hasCallbackQuery()) {
+        if (update.hasCallbackQuery() && updateFileTime == fileAnswers.lastModified()) {
             // Set variables
             val callData = update.callbackQuery.data
             val messageId = update.callbackQuery.message.messageId
@@ -50,7 +53,7 @@ class TelegramBot(
             val answer = findAnswer(callData, answers)
 
             sendMessageWithButtons(
-                messageText = answer?.text ?: " -- text not found -- ",
+                messageText = answer?.text ?: answers.text ?: " -- text not found -- ",
                 chatId = chatId,
                 messageId = messageId,
                 answer = answer ?: answers
@@ -89,11 +92,12 @@ class TelegramBot(
                     )
                 )
             }
-        } else {
+        } else if (updateFileTime == fileAnswers.lastModified()) {
             sendMessageWithButtons(
                 messageText = answers.text ?: " -- text not found -- ",
                 chatId = update.message.chatId,
-                answer = answers
+                answer = answers,
+                deleteMessage = DeleteMessage(update.message.chatId.toString(), update.message.messageId)
             )
 
             userService.getUserByUserChatIdAndMessenger(
@@ -128,6 +132,19 @@ class TelegramBot(
                     )
                 )
             }
+        } else {
+            answers = read(fileAnswers)
+            updateFileTime = fileAnswers.lastModified()
+
+            val messageId = update.callbackQuery.message.messageId ?: update.message.messageId!!
+            val chatId = update.callbackQuery.message.chatId ?: update.message.chatId!!
+
+            sendMessageWithButtons(
+                messageText = answers.text ?: " -- text not found -- ",
+                chatId = chatId,
+                answer = answers,
+                deleteMessage = DeleteMessage(chatId.toString(), messageId)
+            )
         }
     }
 
@@ -146,8 +163,10 @@ class TelegramBot(
         messageText: String,
         chatId: Long,
         answer: FrequentlyAskedQuestionsDTO,
-        messageId: Int? = null
+        messageId: Int? = null,
+        deleteMessage: DeleteMessage? = null,
     ): Unit = try {
+        deleteMessage?.let { execute(it) }
         messageId?.let {
             EditMessageText().also {
                 it.chatId = chatId.toString()
@@ -197,11 +216,13 @@ class TelegramBot(
         log.error(e.message, e)
     }
 
-    private fun read(fileName: String): FrequentlyAskedQuestionsDTO {
-        val jsonString = File(fileName).inputStream().readBytes().toString(Charsets.UTF_8)
+    private fun read(file: File): FrequentlyAskedQuestionsDTO {
+        val jsonString = file.inputStream().readBytes().toString(Charsets.UTF_8)
         val answers = Gson().fromJson(jsonString, FrequentlyAskedQuestionsDTO::class.java)
 
-        validate(answers, fileName)
+        updateFileTime = file.lastModified()
+
+        validate(answers, file)
 
         return answers
     }
@@ -214,17 +235,17 @@ class TelegramBot(
         return null
     }
 
-    private fun validate(answers: FrequentlyAskedQuestionsDTO, fileName: String) {
+    private fun validate(answers: FrequentlyAskedQuestionsDTO, file: File) {
         val codes = mutableSetOf<String>()
         answers.list?.forEach {
             it.code?.let { code ->
                 if (codes.contains(code) && it.text != null) {
-                    throw RuntimeException("Code '$code' is duplicated in '$fileName'")
+                    throw RuntimeException("Code '$code' is duplicated in '${file.name}'")
                 } else if (it.text != null) {
                     codes.add(code)
                 }
             }
-            validate(it, fileName)
+            validate(it, file)
         }
     }
 
