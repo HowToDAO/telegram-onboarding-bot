@@ -53,7 +53,7 @@ class TelegramBot(
             val answer = findAnswer(callData, answers)
 
             sendMessageWithButtons(
-                messageText = answer?.text ?: answers.text ?: " -- text not found -- ",
+                messageText = replace(answer?.text ?: answers.text ?: " -- text not found -- ", update),
                 chatId = chatId,
                 messageId = messageId,
                 answer = answer ?: answers
@@ -94,7 +94,7 @@ class TelegramBot(
             }
         } else if (updateFileTime == fileAnswers.lastModified()) {
             sendMessageWithButtons(
-                messageText = answers.text ?: " -- text not found -- ",
+                messageText = replace(answers.text ?: " -- text not found -- ", update),
                 chatId = update.message.chatId,
                 answer = answers,
                 deleteMessage = DeleteMessage(update.message.chatId.toString(), update.message.messageId)
@@ -140,7 +140,7 @@ class TelegramBot(
             val chatId = update.callbackQuery.message.chatId ?: update.message.chatId!!
 
             sendMessageWithButtons(
-                messageText = answers.text ?: " -- text not found -- ",
+                messageText = replace(answers.text ?: " -- text not found -- ", update),
                 chatId = chatId,
                 answer = answers,
                 deleteMessage = DeleteMessage(chatId.toString(), messageId)
@@ -247,6 +247,17 @@ class TelegramBot(
             }
             validate(it, file)
         }
+    }
+
+    private fun replace(text: String, update: Update): String {
+        var result = text
+        result = result.replace(
+            "\${userName}",
+            update.message?.from?.userName?.toString()
+                ?: update.callbackQuery?.from?.userName?.toString()
+                ?: "(Новенький)"
+        )
+        return result
     }
 
     override fun getBotUsername(): String = botUsername
