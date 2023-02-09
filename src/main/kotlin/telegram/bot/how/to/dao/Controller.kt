@@ -23,7 +23,9 @@ open class Controller(userService: UserService) {
         val bot = TelegramBot(
             botUsername = conf.getString("bot_username"),
             botToken = conf.getString("bot_token"),
-            fileName = conf.getString("file_name"),
+            answersFile = File(conf.getString("file_name")),
+            adminUserNames = conf.getStringList("admin_user_names"),
+            adminUserIds = conf.getLongList("admin_user_ids"),
             userService = userService
         )
         TelegramBotsApi(DefaultBotSession::class.java).registerBot(bot)

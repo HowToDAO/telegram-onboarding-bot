@@ -21,12 +21,14 @@ import java.sql.Timestamp
 class TelegramBot(
     private val botUsername: String,
     private val botToken: String,
-    fileName: String,
+    private val adminUserNames: List<String>,
+    private val adminUserIds: List<Long>,
+    private val answersFile: File,
     override val userService: UserService
 ) : Communicator, TelegramLongPollingBot() {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private val answers = read(fileName)
+    private var answers = read(answersFile)
 
     override fun onUpdateReceived(update: Update) {
         log.debug(
@@ -41,7 +43,23 @@ class TelegramBot(
 
         val userAction: UserAction?
 
-        if (update.hasCallbackQuery()) {
+        if (!update.message.isGroupMessage) {
+            if(update.message.text == "get_user_info")
+                sendMessage("User info:\n${update.message?.from}", update.message.chatId)
+        }
+        else if (update.message.hasDocument()) {
+            if (
+                update.message.from.id in adminUserIds
+                || update.message.from.userName in adminUserNames // todo :: remove check by usernames (not secure!)
+            ) {
+
+                val jsonFile = File("")
+
+                jsonFile.renameTo(answersFile)
+                answers = read(answersFile)
+            }
+        }
+        else if (update.hasCallbackQuery()) {
             // Set variables
             val callData = update.callbackQuery.data
             val messageId = update.callbackQuery.message.messageId
@@ -197,11 +215,11 @@ class TelegramBot(
         log.error(e.message, e)
     }
 
-    private fun read(fileName: String): FrequentlyAskedQuestionsDTO {
-        val jsonString = File(fileName).inputStream().readBytes().toString(Charsets.UTF_8)
+    private fun read(answersFile: File): FrequentlyAskedQuestionsDTO {
+        val jsonString = answersFile.inputStream().readBytes().toString(Charsets.UTF_8)
         val answers = Gson().fromJson(jsonString, FrequentlyAskedQuestionsDTO::class.java)
 
-        validate(answers, fileName)
+        validate(answers, answersFile.name)
 
         return answers
     }
