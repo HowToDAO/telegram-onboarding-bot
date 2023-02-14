@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.GetFile
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
@@ -16,6 +17,9 @@ import telegram.bot.how.to.dao.database.data.entity.User
 import telegram.bot.how.to.dao.database.data.entity.UserAction
 import java.io.File
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class TelegramBot(
@@ -29,6 +33,7 @@ class TelegramBot(
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
     private var answers = read(answersFile)
+    private val fileFormatTime = SimpleDateFormat("yyyy_MM_dd__HH_mm_ss").also { it.timeZone = TimeZone.getTimeZone("UTC") }
 
     override fun onUpdateReceived(update: Update) {
         log.debug(
@@ -43,23 +48,7 @@ class TelegramBot(
 
         val userAction: UserAction?
 
-        if (!update.message.isGroupMessage) {
-            if(update.message.text == "get_user_info")
-                sendMessage("User info:\n${update.message?.from}", update.message.chatId)
-        }
-        else if (update.message.hasDocument()) {
-            if (
-                update.message.from.id in adminUserIds
-                || update.message.from.userName in adminUserNames // todo :: remove check by usernames (not secure!)
-            ) {
-
-                val jsonFile = File("")
-
-                jsonFile.renameTo(answersFile)
-                answers = read(answersFile)
-            }
-        }
-        else if (update.hasCallbackQuery()) {
+        if (update.hasCallbackQuery()) {
             // Set variables
             val callData = update.callbackQuery.data
             val messageId = update.callbackQuery.message.messageId
@@ -68,7 +57,7 @@ class TelegramBot(
             val answer = findAnswer(callData, answers)
 
             sendMessageWithButtons(
-                messageText = answer?.text ?: " -- text not found -- ",
+                messageText = answer?.text ?: answers.text ?: " -- text not found -- ",
                 chatId = chatId,
                 messageId = messageId,
                 answer = answer ?: answers
@@ -106,6 +95,32 @@ class TelegramBot(
                         user = user
                     )
                 )
+            }
+        } else if (!update.message.isGroupMessage && update.message.text == "get_user_info") {
+            sendMessage("User info:\n${update.message?.from}", update.message.chatId)
+        } else if (update.message.hasDocument()) {
+            if (
+                update.message.from.id in adminUserIds
+                || update.message.from.userName in adminUserNames // todo :: remove check by usernames (not secure!)
+            ) {
+
+                val fileId = update.message.document.fileId
+
+                val filePath = execute(GetFile().apply { this.fileId = fileId }).filePath
+
+                val answersFileNew = File(
+                    answersFile.parentFile,
+                    "frequently_asked_questions_${fileFormatTime.format(Date())}.json"
+                )
+
+                downloadFile(filePath, answersFileNew)
+
+                try {
+                    answers = read(answersFileNew)
+                } catch (e: Exception) {
+                    sendMessage("Error while reading file: ${e.stackTraceToString()}", update.message.chatId)
+                    return
+                }
             }
         } else {
             sendMessageWithButtons(
