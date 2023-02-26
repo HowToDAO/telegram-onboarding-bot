@@ -6,10 +6,12 @@ import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.GetFile
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import telegram.bot.how.to.dao.database.Mapper.asFile
 import telegram.bot.how.to.dao.database.data.entity.Messenger
 import telegram.bot.how.to.dao.database.dto.FrequentlyAskedQuestionsDTO
 import telegram.bot.how.to.dao.database.service.UserService
@@ -49,7 +51,6 @@ class TelegramBot(
         val userAction: UserAction?
 
         if (update.hasCallbackQuery()) {
-            // Set variables
             val callData = update.callbackQuery.data
             val messageId = update.callbackQuery.message.messageId
             val chatId = update.callbackQuery.message.chatId
@@ -57,7 +58,7 @@ class TelegramBot(
             val answer = findAnswer(callData, answers)
 
             sendMessageWithButtons(
-                messageText = answer?.text ?: answers.text ?: " -- text not found -- ",
+                messageText = replace(answer?.text ?: answers.text ?: " -- text not found -- ", update),
                 chatId = chatId,
                 messageId = messageId,
                 answer = answer ?: answers
@@ -117,6 +118,7 @@ class TelegramBot(
 
                 try {
                     answers = read(answersFileNew)
+                    asFile(answers, answersFile)
                 } catch (e: Exception) {
                     sendMessage("Error while reading file: ${e.stackTraceToString()}", update.message.chatId)
                     return
@@ -124,9 +126,10 @@ class TelegramBot(
             }
         } else {
             sendMessageWithButtons(
-                messageText = answers.text ?: " -- text not found -- ",
+                messageText = replace(answers.text ?: " -- text not found -- ", update),
                 chatId = update.message.chatId,
-                answer = answers
+                answer = answers,
+                deleteMessage = DeleteMessage(update.message.chatId.toString(), update.message.messageId)
             )
 
             userService.getUserByUserChatIdAndMessenger(
@@ -179,8 +182,10 @@ class TelegramBot(
         messageText: String,
         chatId: Long,
         answer: FrequentlyAskedQuestionsDTO,
-        messageId: Int? = null
+        messageId: Int? = null,
+        deleteMessage: DeleteMessage? = null,
     ): Unit = try {
+        deleteMessage?.let { execute(it) }
         messageId?.let {
             EditMessageText().also {
                 it.chatId = chatId.toString()
@@ -259,6 +264,17 @@ class TelegramBot(
             }
             validate(it, fileName)
         }
+    }
+
+    private fun replace(text: String, update: Update): String {
+        var result = text
+        result = result.replace(
+            "\${userName}",
+            update.message?.from?.userName?.toString()
+                ?: update.callbackQuery?.from?.userName?.toString()
+                ?: "(Новенький)"
+        )
+        return result
     }
 
     override fun getBotUsername(): String = botUsername
