@@ -4,12 +4,14 @@ import com.google.gson.Gson
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
+import org.telegram.telegrambots.meta.api.methods.GetFile
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import telegram.bot.how.to.dao.database.Mapper.asFile
 import telegram.bot.how.to.dao.database.data.entity.Messenger
 import telegram.bot.how.to.dao.database.dto.FrequentlyAskedQuestionsDTO
 import telegram.bot.how.to.dao.database.service.UserService
@@ -17,19 +19,23 @@ import telegram.bot.how.to.dao.database.data.entity.User
 import telegram.bot.how.to.dao.database.data.entity.UserAction
 import java.io.File
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class TelegramBot(
     private val botUsername: String,
     private val botToken: String,
-    fileName: String,
+    private val adminUserNames: List<String>,
+    private val adminUserIds: List<Long>,
+    private val answersFile: File,
     override val userService: UserService
 ) : Communicator, TelegramLongPollingBot() {
-    private val fileAnswers = File(fileName)
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
-    private var answers = read(fileAnswers)
-    private var updateFileTime = 0L
+    private var answers = read(answersFile)
+    private val fileFormatTime = SimpleDateFormat("yyyy_MM_dd__HH_mm_ss").also { it.timeZone = TimeZone.getTimeZone("UTC") }
 
     override fun onUpdateReceived(update: Update) {
         log.debug(
@@ -44,8 +50,7 @@ class TelegramBot(
 
         val userAction: UserAction?
 
-        if (update.hasCallbackQuery() && updateFileTime == fileAnswers.lastModified()) {
-            // Set variables
+        if (update.hasCallbackQuery()) {
             val callData = update.callbackQuery.data
             val messageId = update.callbackQuery.message.messageId
             val chatId = update.callbackQuery.message.chatId
@@ -92,7 +97,34 @@ class TelegramBot(
                     )
                 )
             }
-        } else if (updateFileTime == fileAnswers.lastModified()) {
+        } else if (!update.message.isGroupMessage && update.message.text == "get_user_info") {
+            sendMessage("User info:\n${update.message?.from}", update.message.chatId)
+        } else if (update.message.hasDocument()) {
+            if (
+                update.message.from.id in adminUserIds
+                || update.message.from.userName in adminUserNames // todo :: remove check by usernames (not secure!)
+            ) {
+
+                val fileId = update.message.document.fileId
+
+                val filePath = execute(GetFile().apply { this.fileId = fileId }).filePath
+
+                val answersFileNew = File(
+                    answersFile.parentFile,
+                    "frequently_asked_questions_${fileFormatTime.format(Date())}.json"
+                )
+
+                downloadFile(filePath, answersFileNew)
+
+                try {
+                    answers = read(answersFileNew)
+                    asFile(answers, answersFile)
+                } catch (e: Exception) {
+                    sendMessage("Error while reading file: ${e.stackTraceToString()}", update.message.chatId)
+                    return
+                }
+            }
+        } else {
             sendMessageWithButtons(
                 messageText = replace(answers.text ?: " -- text not found -- ", update),
                 chatId = update.message.chatId,
@@ -132,19 +164,6 @@ class TelegramBot(
                     )
                 )
             }
-        } else {
-            answers = read(fileAnswers)
-            updateFileTime = fileAnswers.lastModified()
-
-            val messageId = update.callbackQuery.message.messageId ?: update.message.messageId!!
-            val chatId = update.callbackQuery.message.chatId ?: update.message.chatId!!
-
-            sendMessageWithButtons(
-                messageText = replace(answers.text ?: " -- text not found -- ", update),
-                chatId = chatId,
-                answer = answers,
-                deleteMessage = DeleteMessage(chatId.toString(), messageId)
-            )
         }
     }
 
@@ -216,13 +235,11 @@ class TelegramBot(
         log.error(e.message, e)
     }
 
-    private fun read(file: File): FrequentlyAskedQuestionsDTO {
-        val jsonString = file.inputStream().readBytes().toString(Charsets.UTF_8)
+    private fun read(answersFile: File): FrequentlyAskedQuestionsDTO {
+        val jsonString = answersFile.inputStream().readBytes().toString(Charsets.UTF_8)
         val answers = Gson().fromJson(jsonString, FrequentlyAskedQuestionsDTO::class.java)
 
-        updateFileTime = file.lastModified()
-
-        validate(answers, file)
+        validate(answers, answersFile.name)
 
         return answers
     }
@@ -235,17 +252,17 @@ class TelegramBot(
         return null
     }
 
-    private fun validate(answers: FrequentlyAskedQuestionsDTO, file: File) {
+    private fun validate(answers: FrequentlyAskedQuestionsDTO, fileName: String) {
         val codes = mutableSetOf<String>()
         answers.list?.forEach {
             it.code?.let { code ->
                 if (codes.contains(code) && it.text != null) {
-                    throw RuntimeException("Code '$code' is duplicated in '${file.name}'")
+                    throw RuntimeException("Code '$code' is duplicated in '$fileName'")
                 } else if (it.text != null) {
                     codes.add(code)
                 }
             }
-            validate(it, file)
+            validate(it, fileName)
         }
     }
 
